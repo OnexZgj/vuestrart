@@ -12,14 +12,8 @@
       <div>
         <el-row :gutter="20">
           <el-col :span="6">
-            <el-input
-                placeholder="请输入内容"
-                v-model="queryInfo.query"
-                clearable
-                @clear="getUserList">
-
+            <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getUserList">
               <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
-
             </el-input>
           </el-col>
           <el-col :span="6">
@@ -30,31 +24,16 @@
 
 
       <!--    用户列表区域-->
-      <el-table
-          border
-          :data="userlist"
-          stripe
-          style="width: 100%">
-        <el-table-column
-            prop="username"
-            label="姓名"
-            width="180">
+      <el-table border :data="userlist" stripe style="width: 100%">
+        <el-table-column prop="username" label="姓名" width="180">
         </el-table-column>
-        <el-table-column
-            prop="email"
-            label="邮箱"
-            width="180">
+        <el-table-column prop="email" label="邮箱" width="180">
         </el-table-column>
-        <el-table-column
-            prop="mobile"
-            label="电话">
+        <el-table-column prop="mobile" label="电话">
         </el-table-column>
-        <el-table-column
-            prop="role_name"
-            label="角色">
+        <el-table-column prop="role_name" label="角色">
         </el-table-column>
-        <el-table-column
-            label="状态">
+        <el-table-column label="状态">
           <template slot-scope="scope">
             <el-switch
                 v-model="scope.row.mg_state" @change="userStateChanged(scope.row)">
@@ -79,21 +58,16 @@
 
       </el-table>
 
-      <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="queryInfo.pagenum"
-          :page-sizes="[1, 2, 5, 10]"
-          :page-size="queryInfo.pagesize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total">
+      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                     :current-page="queryInfo.pagenum" :page-sizes="[1, 2, 5, 10]" :page-size="queryInfo.pagesize"
+                     layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </el-card>
 
     <el-dialog title="修改用户" :visible.sync="editDialogVisible"
                @close="editDialogClosed">
       <el-form :model="editForm" :rules="editFormRules" ref="editFormRef">
-        <el-form-item label="用户名" label-width="70px"  >
+        <el-form-item label="用户名" label-width="70px">
           <el-input v-model="editForm.username" disabled></el-input>
         </el-form-item>
 
@@ -113,21 +87,21 @@
 
 
     <el-dialog title="添加用户" :visible.sync="addDialogVisible" @close="addDialogClosed">
-      <el-form :model="editForm" :rules="addUserRules" ref="addUserRef">
-        <el-form-item label="用户名" label-width="70px" prop="">
-          <el-input v-model="editForm.username"></el-input>
+      <el-form :model="addForm" :rules="addUserRules" ref="addUserRef">
+        <el-form-item label="用户名" label-width="70px" prop="username">
+          <el-input v-model="addForm.username"></el-input>
         </el-form-item>
 
-        <el-form-item label="密码" label-width="70px">
-          <el-input v-model="editForm.password"></el-input>
+        <el-form-item label="密码" label-width="70px" prop="password">
+          <el-input v-model="addForm.password"></el-input>
         </el-form-item>
 
-        <el-form-item label="邮箱" label-width="70px">
-          <el-input v-model="editForm.email"></el-input>
+        <el-form-item label="邮箱" label-width="70px" prop="email">
+          <el-input v-model="addForm.email"></el-input>
         </el-form-item>
 
-        <el-form-item label="手机" label-width="70px">
-          <el-input v-model="editForm.mobile"></el-input>
+        <el-form-item label="手机" label-width="70px" prop="mobile">
+          <el-input v-model="addForm.mobile"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -149,10 +123,8 @@ export default {
       if (regEmail.test(value)) {
         return cb;
       }
-
       cb(new Error('请输入合法的邮箱'))
     }
-
 
     // 验证手机号的规则
     var checkMobile = (rule, value, cb) => {
@@ -162,7 +134,6 @@ export default {
       if (regMobile.test(value)) {
         return cb()
       }
-
       cb(new Error('请输入合法的手机号'))
     }
 
@@ -185,6 +156,13 @@ export default {
       // 查询到的用户信息对象
       editForm: {},
 
+      addForm: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: '',
+      },
+
       editFormRules: {
         email: [
           {required: true, message: '请输入邮箱', trigger: 'blur'},
@@ -195,7 +173,25 @@ export default {
           {validator: checkMobile, trigger: 'blur'}
         ]
       },
-      addUserRules:{
+      addUserRules: {
+        username: [
+          {required: true, message: '请输入用户名', trigger: 'blur'},
+          {
+            min: 3,
+            max: 10,
+            message: '用户名的长度在3~10个字符之间',
+            trigger: 'blur'
+          }
+        ],
+        password: [
+          {required: true, message: '请输入密码', trigger: 'blur'},
+          {
+            min: 6,
+            max: 15,
+            message: '用户名的长度在6~15个字符之间',
+            trigger: 'blur'
+          }
+        ],
         email: [
           {required: true, message: '请输入邮箱', trigger: 'blur'},
           {validator: checkEmail, trigger: 'blur'}
@@ -214,29 +210,33 @@ export default {
       this.addDialogVisible = true
     },
     //添加用户
-    async addUserInfo() {
+    addUserInfo() {
+      console.log("addUserInfo")
+      this.$refs.addUserRef.validate(async valid => {
+        console.log(valid)
+        if (!valid) return
 
-      this.$refs.addUserRef
+        console.log(this.addForm)
+        const {data: res} = await this.$http.post('users', this.addForm)
+        console.log(res)
+        if (res.meta.status !== 201) {
+          return this.$message.error("添加失败")
+        }
+        this.$message.success("添加成功")
+        this.addDialogVisible = false
+        this.getUserList();
 
-      console.log(this.editForm)
-      const {data: res} = await this.$http.post('users', {
-        username: this.editForm.username,
-        password: this.editForm.password,
-        email: this.editForm.email,
-        mobile: this.editForm.mobile
       })
-      console.log(res)
-      if (res.meta.status !== 201) {
-        return this.$message.error("添加失败")
-      }
-      this.$message.success("添加成功")
-      this.addDialogVisible = false
-      this.getUserList();
     },
 
     //编辑弹框关闭
     editDialogClosed() {
       this.$refs.editFormRef.resetFields();
+    },
+
+
+    addDialogClosed() {
+      this.$refs.addUserRef.resetFields();
     },
 
 
