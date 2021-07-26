@@ -10,9 +10,7 @@
     <el-container>
       <el-aside :width="isCollapse?'64px':'200px'">
         <div class="toggle-button" @click="toggleCollapse">|||</div>
-        <el-menu @open="handleOpen"
-                 @close="handleClose"
-                 background-color="#333744"
+        <el-menu background-color="#333744"
                  text-color="#fff"
                  active-text-color="#ffd04b"
                  :collapse="isCollapse"
