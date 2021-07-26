@@ -70,7 +70,7 @@
             <el-button type="danger" size="mini" icon="el-icon-delete"
                        @click="removeUserById(scope.row.id)"></el-button>
             <!-- 分配角色按钮 -->
-            <el-tooltip effect="dark" content="分配角色" placement="top">
+            <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
               <el-button type="warning" size="mini" icon="el-icon-setting" @click="setRole(scope.row)"></el-button>
             </el-tooltip>
 
@@ -88,14 +88,85 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
       </el-pagination>
-
     </el-card>
+
+    <el-dialog title="修改用户" :visible.sync="editDialogVisible"
+               @close="editDialogClosed">
+      <el-form :model="editForm" :rules="editFormRules" ref="editFormRef">
+        <el-form-item label="用户名" label-width="70px"  >
+          <el-input v-model="editForm.username" disabled></el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱" label-width="70px" prop="email">
+          <el-input v-model="editForm.email"></el-input>
+        </el-form-item>
+
+        <el-form-item label="手机" label-width="70px" prop="mobile">
+          <el-input v-model="editForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUserInfo">确 定</el-button>
+      </div>
+    </el-dialog>
+
+
+    <el-dialog title="添加用户" :visible.sync="addDialogVisible" @close="addDialogClosed">
+      <el-form :model="editForm" :rules="addUserRules" ref="addUserRef">
+        <el-form-item label="用户名" label-width="70px" prop="">
+          <el-input v-model="editForm.username"></el-input>
+        </el-form-item>
+
+        <el-form-item label="密码" label-width="70px">
+          <el-input v-model="editForm.password"></el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱" label-width="70px">
+          <el-input v-model="editForm.email"></el-input>
+        </el-form-item>
+
+        <el-form-item label="手机" label-width="70px">
+          <el-input v-model="editForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUserInfo">确 定</el-button>
+      </div>
+    </el-dialog>
+
+
   </div>
 </template>
 
 <script>
 export default {
   data() {
+
+    var checkEmail = (rule, value, cb) => {
+      const regEmail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-])+/
+      if (regEmail.test(value)) {
+        return cb;
+      }
+
+      cb(new Error('请输入合法的邮箱'))
+    }
+
+
+    // 验证手机号的规则
+    var checkMobile = (rule, value, cb) => {
+      // 验证手机号的正则表达式
+      const regMobile = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/
+
+      if (regMobile.test(value)) {
+        return cb()
+      }
+
+      cb(new Error('请输入合法的手机号'))
+    }
+
+
     return {
       queryInfo: {
         query: "",
@@ -105,13 +176,97 @@ export default {
         pagesize: 2
       },
       userlist: [],
-      total: 0
+      total: 0,
+      // 控制修改用户对话框的显示与隐藏
+      editDialogVisible: false,
+      // 控制添加用户的对话框的显示与隐藏
+      addDialogVisible: false,
+
+      // 查询到的用户信息对象
+      editForm: {},
+
+      editFormRules: {
+        email: [
+          {required: true, message: '请输入邮箱', trigger: 'blur'},
+          {validator: checkEmail, trigger: 'blur'}
+        ],
+        mobile: [
+          {required: true, message: '请输入用户手机', trigger: 'blur'},
+          {validator: checkMobile, trigger: 'blur'}
+        ]
+      },
+      addUserRules:{
+        email: [
+          {required: true, message: '请输入邮箱', trigger: 'blur'},
+          {validator: checkEmail, trigger: 'blur'}
+        ],
+        mobile: [
+          {required: true, message: '请输入用户手机', trigger: 'blur'},
+          {validator: checkMobile, trigger: 'blur'}
+        ]
+      }
     }
   },
   methods: {
-    showEditDialog(id) {
-      console.log(id)
+
+    //添加用户按钮
+    addUser() {
+      this.addDialogVisible = true
     },
+    //添加用户
+    async addUserInfo() {
+
+      this.$refs.addUserRef
+
+      console.log(this.editForm)
+      const {data: res} = await this.$http.post('users', {
+        username: this.editForm.username,
+        password: this.editForm.password,
+        email: this.editForm.email,
+        mobile: this.editForm.mobile
+      })
+      console.log(res)
+      if (res.meta.status !== 201) {
+        return this.$message.error("添加失败")
+      }
+      this.$message.success("添加成功")
+      this.addDialogVisible = false
+      this.getUserList();
+    },
+
+    //编辑弹框关闭
+    editDialogClosed() {
+      this.$refs.editFormRef.resetFields();
+    },
+
+
+    //更新用户信息
+    editUserInfo() {
+      this.$refs.editFormRef.validate(async valid => {
+        if (!valid) return
+        const {data: res} = await this.$http.put(`users/${this.editForm.id}`, {
+          'email': this.editForm.email,
+          'mobile': this.editForm.mobile
+        })
+        if (res.meta.status != 200) {
+          return this.$message.error("更新用户信息失败")
+        }
+        this.editDialogVisible = false
+        this.getUserList()
+        this.$message.success("更新用户信息成功")
+      })
+    },
+
+    async showEditDialog(id) {
+      const {data: res} = await this.$http.get(`users/${id}`)
+      if (res.meta.status !== 200) {
+        return this.$message.error("查询用户信息失败")
+      }
+      this.editForm = res.data
+      this.editDialogVisible = true
+    },
+
+
     async removeUserById(id) {
       const {data: res} = await this.$http.delete(`users/${id}`)
       console.log(res)
@@ -122,6 +277,8 @@ export default {
         this.$message.success("删除失败")
       }
     },
+
+
     setRole() {
 
     },
@@ -131,6 +288,8 @@ export default {
       this.queryInfo.pagesize = newSize
       this.getUserList()
     },
+
+
     handleCurrentChange(pageIndex) {
       console.log(`当前页: ${pageIndex}`);
       this.queryInfo.pagenum = pageIndex

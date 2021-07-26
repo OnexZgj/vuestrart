@@ -26,3 +26,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ## scope 的使用
 
 # switch开关的使用，不绑定数据的时候，是没有作用的
+
+trigger属性是什么意思
+
+{required:true,message:'请输入邮箱地址',trigger:'blur'}
