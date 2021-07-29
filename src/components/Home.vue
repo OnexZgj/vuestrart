@@ -2,7 +2,7 @@
   <el-container class="home-container">
     <el-header>
       <div>
-        <span>渣渣辉代言</span>
+        <span> Onex 永远相信美好的事情即将发生！</span>
       </div>
 
       <el-button type="info" @click="logout">退出</el-button>
@@ -12,24 +12,24 @@
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <el-menu background-color="#333744"
                  text-color="#fff"
-                 active-text-color="#ffd04b"
+                 active-text-color="#409EFF"
                  :collapse="isCollapse"
+                 unique-opened
                  :collapse-transition="false"
                  router :default-active='activePath'>
           <el-submenu :index="item.id+''" v-for="item in menulist" :key="item.id">
             <template slot="title">
-              <i class="el-icon-location"></i>
+              <i :class='iconsObj[item.id]'></i>
               <span>{{ item.authName }}</span>
             </template>
 
             <el-menu-item :index="'/'+subitem.path" v-for="subitem in item.children" :key="subitem.id"
                           @click="saveNavState('/' + subitem.path)">
               <template slot="title">
-                <i class="el-icon-location"></i>
+                <i class="el-icon-menu"></i>
                 <span>{{ subitem.authName }}</span>
               </template>
             </el-menu-item>
-
           </el-submenu>
 
         </el-menu>
@@ -48,7 +48,14 @@ export default {
     return {
       menulist: [],
       activePath: '',
-      isCollapse: false
+      isCollapse: false,
+      iconsObj: {
+        '125': 'iconfont icon-user',
+        '103': 'iconfont icon-tijikongjian',
+        '101': 'iconfont icon-shangpin',
+        '102': 'iconfont icon-danju',
+        '145': 'iconfont icon-baobiao'
+      },
     }
   },
 
@@ -68,7 +75,8 @@ export default {
       this.activePath = activePath
     },
     logout() {
-
+      window.sessionStorage.clear()
+      this.$router.push('/login')
     },
     toggleCollapse() {
       this.isCollapse = !this.isCollapse;
@@ -103,6 +111,12 @@ export default {
   text-align: center;
   letter-spacing: 0.2em;
   color: #fff;
+  line-height: 24px;
+  font-size: 10px;
+}
+
+.iconfont{
+  margin-right: 10px;
 }
 
 .el-menu {

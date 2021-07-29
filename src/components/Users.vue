@@ -2,7 +2,7 @@
   <div>
     <!--    头部区域-->
     <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/welcome' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>用户管理</el-breadcrumb-item>
       <el-breadcrumb-item>用户列表</el-breadcrumb-item>
     </el-breadcrumb>
@@ -87,20 +87,20 @@
 
 
     <el-dialog title="添加用户" :visible.sync="addDialogVisible" @close="addDialogClosed">
-      <el-form :model="addForm" :rules="addUserRules" ref="addUserRef">
-        <el-form-item label="用户名" label-width="70px" prop="username">
+      <el-form :model='addForm' :rules='addUserRules' ref='addUserRef' label-width="70px">
+        <el-form-item label="用户名" prop="username">
           <el-input v-model="addForm.username"></el-input>
         </el-form-item>
 
-        <el-form-item label="密码" label-width="70px" prop="password">
+        <el-form-item label="密码" prop="password">
           <el-input v-model="addForm.password"></el-input>
         </el-form-item>
 
-        <el-form-item label="邮箱" label-width="70px" prop="email">
+        <el-form-item label="邮箱" prop="email">
           <el-input v-model="addForm.email"></el-input>
         </el-form-item>
 
-        <el-form-item label="手机" label-width="70px" prop="mobile">
+        <el-form-item label="手机" prop="mobile">
           <el-input v-model="addForm.mobile"></el-input>
         </el-form-item>
       </el-form>
@@ -211,8 +211,9 @@ export default {
     },
     //添加用户
     addUserInfo() {
+      // debugger
       console.log("addUserInfo")
-      this.$refs.addUserRef.validate(async valid => {
+      this.$refs.addUserRef.validate(async (valid) => {
         console.log(valid)
         if (!valid) return
 
@@ -242,13 +243,13 @@ export default {
 
     //更新用户信息
     editUserInfo() {
-      this.$refs.editFormRef.validate(async valid => {
+      this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) return
         const {data: res} = await this.$http.put(`users/${this.editForm.id}`, {
           'email': this.editForm.email,
           'mobile': this.editForm.mobile
         })
-        if (res.meta.status != 200) {
+        if (res.meta.status !== 200) {
           return this.$message.error("更新用户信息失败")
         }
         this.editDialogVisible = false
