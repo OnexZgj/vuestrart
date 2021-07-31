@@ -10,6 +10,7 @@
       <el-button type="primary" @click="addCategroies">添加分类</el-button>
 
       <tree-table
+          class="tree-table"
           ref="table"
           sum-text="sum"
           index-text="#"
@@ -20,13 +21,42 @@
           :show-header="props.showHeader"
           :show-summary="props.showSummary"
           :show-row-hover="props.showRowHover"
-          :show-index="props.showIndex"
+          show-index
           :tree-type="props.treeType"
           :is-fold="props.isFold"
           :expand-type="props.expandType"
           :selection-type="props.selectionType">
 
+
+        <template slot="isok" slot-scope="scope">
+          <i class="el-icon-success" v-if="scope.row.cat_deleted === false" style="color: #55a532"></i>
+          <i class="el-icon-error" v-else style="color: red"></i>
+        </template>
+
+        <template slot="order" slot-scope="scope">
+          <el-tag size="mini" v-if="scope.row.cat_level === 0">一级</el-tag>
+          <el-tag size="mini" type="success" v-else-if="scope.row.cat_level===1">二级</el-tag>
+          <el-tag size="mini" type="warning" v-else>三级</el-tag>
+        </template>
+
+        <template slot="opt">
+          <el-button type="primary" icon="el-icon-edit" size="mini">编辑</el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+        </template>
+
       </tree-table>
+
+
+      <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="queryInfo.pagenum"
+          :page-sizes="[3, 5, 10, 20]"
+          :page-size="queryInfo.pagesize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+      </el-pagination>
+
     </el-card>
 
   </div>
@@ -36,6 +66,7 @@
 export default {
   data() {
     return {
+      total: 0,
       props: {
         stripe: false,
         border: false,
@@ -48,162 +79,31 @@ export default {
         expandType: false,
         selectionType: false,
       },
-      cateList: [
-        {
-          name: 'Jack',
-          sex: 'male',
-          likes: ['football', 'basketball'],
-          score: 10,
-          children: [
-            {
-              name: 'Ashley',
-              sex: 'female',
-              likes: ['football', 'basketball'],
-              score: 20,
-              children: [
-                {
-                  name: 'Ashley',
-                  sex: 'female',
-                  likes: ['football', 'basketball'],
-                  score: 20,
-                },
-                {
-                  name: 'Taki',
-                  sex: 'male',
-                  likes: ['football', 'basketball'],
-                  score: 10,
-                  children: [
-                    {
-                      name: 'Ashley',
-                      sex: 'female',
-                      likes: ['football', 'basketball'],
-                      score: 20,
-                    },
-                    {
-                      name: 'Taki',
-                      sex: 'male',
-                      likes: ['football', 'basketball'],
-                      score: 10,
-                      children: [
-                        {
-                          name: 'Ashley',
-                          sex: 'female',
-                          likes: ['football', 'basketball'],
-                          score: 20,
-                        },
-                        {
-                          name: 'Taki',
-                          sex: 'male',
-                          likes: ['football', 'basketball'],
-                          score: 10,
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              name: 'Taki',
-              sex: 'male',
-              likes: ['football', 'basketball'],
-              score: 10,
-            },
-          ],
-        },
-        {
-          name: 'Tom',
-          sex: 'male',
-          likes: ['football', 'basketball'],
-          score: 20,
-          children: [
-            {
-              name: 'Ashley',
-              sex: 'female',
-              likes: ['football', 'basketball'],
-              score: 20,
-              children: [
-                {
-                  name: 'Ashley',
-                  sex: 'female',
-                  likes: ['football', 'basketball'],
-                  score: 20,
-                },
-                {
-                  name: 'Taki',
-                  sex: 'male',
-                  likes: ['football', 'basketball'],
-                  score: 10,
-                },
-              ],
-            },
-            {
-              name: 'Taki',
-              sex: 'male',
-              likes: ['football', 'basketball'],
-              score: 10,
-              children: [
-                {
-                  name: 'Ashley',
-                  sex: 'female',
-                  likes: ['football', 'basketball'],
-                  score: 20,
-                },
-                {
-                  name: 'Taki',
-                  sex: 'male',
-                  likes: ['football', 'basketball'],
-                  score: 10,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'Tom',
-          sex: 'male',
-          likes: ['football', 'basketball'],
-          score: 20,
-        },
-        {
-          name: 'Tom',
-          sex: 'male',
-          likes: ['football', 'basketball'],
-          score: 20,
-          children: [
-            {
-              name: 'Ashley',
-              sex: 'female',
-              likes: ['football', 'basketball'],
-              score: 20,
-            },
-            {
-              name: 'Taki',
-              sex: 'male',
-              likes: ['football', 'basketball'],
-              score: 10,
-            },
-          ],
-        },
-      ],
+      cateList: [],
       columns: [
         {
           label: '分类名称',
           prop: 'cat_name',
-          width: '400px',
+          width: '250px',
         },
         {
           label: '是否有效',
-          prop: 'sex',
-          minWidth: '50px',
+          prop: 'cat_deleted',
+          // 表示，将当前列定义为模板列
+          type: 'template',
+          // 表示当前这一列使用模板名称
+          template: 'isok'
         },
         {
           label: '排序',
-          prop: 'score',
+          prop: 'cat_level',
+          type: 'template',
+          template: 'order'
         },
         {
           label: '操作',
-          minWidth: '200px',
+          type: 'template',
+          template: 'opt'
         },
       ],
       queryInfo: {
@@ -216,6 +116,15 @@ export default {
   methods: {
     addCategroies() {
 
+    },
+    handleSizeChange(val) {
+      this.queryInfo.pagesize = val
+      this.getCateList()
+    },
+
+    handleCurrentChange(val) {
+      this.queryInfo.pagenum = val
+      this.getCateList()
     },
 
     async getCateList() {
@@ -239,6 +148,8 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style lang="less" scoped>
+.tree-table {
+  margin-top: 15px;
+}
 </style>

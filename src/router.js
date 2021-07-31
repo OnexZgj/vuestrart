@@ -11,7 +11,6 @@ import Params from './components/Params.vue'
 import Goods from './components/Goods.vue'
 import Orders from './components/Orders.vue'
 import Reports from './components/Reports.vue'
-import Test from './components/Test.vue'
 
 Vue.use(VueRouter)
 
